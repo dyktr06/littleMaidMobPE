@@ -1,0 +1,5 @@
+name: littleMaidMobPE
+main: littleMaidMobPE\Main
+version: 0.8
+api: [3.0.0]
+authors: [darumakka2]
