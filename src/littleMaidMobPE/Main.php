@@ -9,6 +9,7 @@ use littleMaidMobPE\task\RemoveMaid;
 use pocketmine\plugin\PluginBase;
 use pocketmine\event\Listener;
 use pocketmine\entity\Entity;
+use pocketmine\entity\object\ItemEntity;
 use pocketmine\entity\Skin;
 use pocketmine\item\Item;
 use pocketmine\level\Level;
@@ -370,6 +371,11 @@ class Main extends PluginBase implements Listener{
 		$this->Maid->Move($eid, $pos, $yaw, $pitch);
 	}
 
+	// メイドさんがアイテムを拾う
+	public function MaidPickupItem(int $eid, ItemEntity $target){
+		$this->Maid->PickupItem($eid, $target);
+	}
+
 	// メイドさんの再表示
 	public function Redisplay(int $eid, Player $player){
 		$this->Maid->Redisplay($eid, $player);
@@ -525,5 +531,19 @@ class Main extends PluginBase implements Listener{
 			$y++;
 		}
 		return $y;
+	}
+
+	public function SearchItemEntity($eid){
+		if(!$this->isMaid($eid))
+			return false;
+		
+		$searchdis = $this->Maid->Maiddata[$eid]["searchdistance"];
+		$level = $this->Maid->Maiddata[$eid]["level"];
+		$pos = $this->getMaidPosition($eid);
+		foreach($level->getEntities() as $entities){
+			if($pos->distance($entities) <= $searchdis and $entities instanceof ItemEntity){
+				$this->Maid->Maiddata[$eid]["target"] = $entities->getid();
+			}
+		}
 	}
 }

@@ -33,7 +33,7 @@ class Arrow {
 		$this->type = $type;
 	}
 	
-	public function ShootArrow(){
+	public function Shoot(){
 		$damage = $this->damage;
 		$range = $this->range;
 		$speed = $this->speed;
@@ -77,7 +77,7 @@ class Arrow {
 		}
 	}
 
-	public function RemoveArrow(int $eid){
+	public function Remove(int $eid){
 		$packet = new RemoveActorPacket();
 		$packet->entityUniqueId = $eid;
 		foreach($this->Main->getServer()->getOnlinePlayers() as $players){
@@ -85,7 +85,7 @@ class Arrow {
 		}
 	}
 
-	public function MoveArrow(int $eid, Vector3 $pos, Level $level){
+	public function Move(int $eid, Vector3 $pos, Level $level){
 		$packet = new MoveActorAbsolutePacket();
 		$packet->entityRuntimeId = $eid;
 		$packet->position = $pos;
@@ -139,7 +139,7 @@ class ArrowMoving extends Task{
 			$plusx = -$plusxz * sin(deg2rad($yaw));
 			$plusz = $plusxz * cos(deg2rad($yaw));
 			$movedpos = new Vector3($x + $plusx * $speed, $y + $plusy * $speed, $z + $plusz * $speed);
-			$this->getOwner()->MoveArrow($eid, $movedpos, $level);
+			$this->getOwner()->Move($eid, $movedpos, $level);
 			$hit = 0;
 			foreach($level->getEntities() as $entities){
 				if($movedpos->distance($entities) <= 2){
@@ -149,13 +149,13 @@ class ArrowMoving extends Task{
 				}
 			}
 			if($hit > 0 or $range <= 0){
-				$this->getOwner()->RemoveArrow($eid);
+				$this->getOwner()->Remove($eid);
 			}else{
 				$range--;
 				$this->getOwner()->Main->getScheduler()->scheduleDelayedTask(new ArrowMoving($this->getOwner(), $eid, $x + $plusx, $y + $plusy, $z + $plusz, $level, $yaw, $pitch, $damage, $range, $speed), 2);
 			}
 		}else{
-			$this->getOwner()->RemoveArrow($eid);
+			$this->getOwner()->Remove($eid);
 		}
 	}
 }

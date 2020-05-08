@@ -2,8 +2,8 @@
 
 namespace littleMaidMobPE\task;
 
-use littleMaidMobPE\projectile\Arrow;
-
+use pocketmine\entity\Entity;
+use pocketmine\entity\object\ItemEntity;
 use pocketmine\math\Vector3;
 use pocketmine\scheduler\Task;
 use pocketmine\plugin\Plugin;
@@ -43,16 +43,17 @@ class MaidMove extends Task{
 		$target = $this->target;
 		$playername = $this->Maid->Maiddata[$eid]["playername"];
 		$mode = $this->Maid->Maiddata[$eid]["mode"];
-		$delaytime = $this->Maid->Maiddata[$eid]["delaytime"];
 		$speed = $this->Maid->Maiddata[$eid]["speed"] / 20;
 		
 		if($y <= 0) 
 			$this->getOwner()->MaidDeath($eid);
 		
-		if($delaytime > 0)
+		if($this->Maid->Maiddata[$eid]["delaytime"] > 0)
 			$this->Maid->Maiddata[$eid]["delaytime"] -= 1;
 		
-		if($target === 0 or $mode === 0){ //RandomWalk
+		$this->Maid->Maiddata[$eid]["atktime"] += 1;
+		
+		if($target === 0 and $mode === 0){ //RandomWalk
 			if($this->Maid->Maiddata[$eid]["walkcount"] >= 30){
 				$this->Maid->Maiddata[$eid]["randomwalk"] = mt_rand(1,10);
 				$this->Maid->Maiddata[$eid]["walkcount"] = 0;
@@ -109,32 +110,45 @@ class MaidMove extends Task{
 			$finalpos = new Vector3($x, $y, $z);
 			$this->getOwner()->MaidMove($eid, $finalpos, $yaw, $pitch);
 			
+			$atktime = $this->Maid->Maiddata[$eid]["atktime"];
+			$reatk = $this->Maid->Maiddata[$eid]["reatk"];
+			if($this->getOwner()->isPlayerMaid($eid) and $atktime >= $reatk){
+				$this->Maid->Maiddata[$eid]["atktime"] = 0;
+				$this->getOwner()->SearchItemEntity($eid);
+			}
+			
 			$target = $this->Maid->Maiddata[$eid]["target"];
-			$this->getOwner()->getScheduler()->scheduleDelayedTask(new MaidMove($this->getOwner(), $eid, $x, $y, $z, $yaw, $pitch, $target), 1);//ƒ‹[ƒv
+			$this->getOwner()->getScheduler()->scheduleDelayedTask(new MaidMove($this->getOwner(), $eid, $x, $y, $z, $yaw, $pitch, $target), 1);
 		}else{
 			if($this->Maid->Maiddata[$eid]["speed"] > $this->getOwner()->MaidSpeed)
 				$this->Maid->Maiddata[$eid]["speed"] = $this->getOwner()->MaidSpeed;
 			
-			$targetentity = $level->getEntity($target);
 			$player = $this->getOwner()->getServer()->getPlayer($playername);
 			if(!$player instanceof Player)
 				return false;
 			
-			$pos = new Vector3($x, $y + 1.62, $z);
-			$speed = $this->Maid->Maiddata[$eid]["speed"] / 20;
+			$targetentity = $level->getEntity($target);
 			if($targetentity != null){
 				$px = $targetentity->x;
 				$py = $targetentity->y;
 				$pz = $targetentity->z;
 				$level = $targetentity->getLevel();
 			}else{
-				$px = $player->x;
-				$py = $player->y;
-				$pz = $player->z;
-				$level = $player->getLevel();
-				$this->Maid->Maiddata[$eid]["target"] = $player->getid();
-				$targetentity = $level->getEntity($this->Maid->Maiddata[$eid]["target"]);
+				if($mode === 0){
+					$this->Maid->Maiddata[$eid]["target"] = 0;
+					$this->getOwner()->getScheduler()->scheduleDelayedTask(new MaidMove($this->getOwner(), $eid, $x, $y, $z, $yaw, $pitch, 0), 1);
+					return false;
+				}else{
+					$px = $player->x;
+					$py = $player->y;
+					$pz = $player->z;
+					$level = $player->getLevel();
+					$this->Maid->Maiddata[$eid]["target"] = $player->getid();
+					$targetentity = $level->getEntity($this->Maid->Maiddata[$eid]["target"]);
+				}
 			}
+			
+			$pos = new Vector3($x, $y + 1.62, $z);
 			$targetpos = new Vector3($px, $py, $pz);
 			$epx = $px - $x;
 			$epy = $py - $y;
@@ -142,6 +156,7 @@ class MaidMove extends Task{
 			$playerdistance = $this->Maid->Maiddata[$eid]["playerdistance"];
 			$enemydistance = $this->Maid->Maiddata[$eid]["enemydistance"];
 			$searchdistance = $this->Maid->Maiddata[$eid]["searchdistance"];
+			$speed = $this->Maid->Maiddata[$eid]["speed"] / 20;
 			if(($target === $player->getid() and $targetpos->distance($pos) <= $playerdistance) or ($target !== $player->getid() and $targetpos->distance($pos) <= $enemydistance)){
 				if($px > $x){
 					$x += 0;
@@ -198,16 +213,13 @@ class MaidMove extends Task{
 				$this->Maid->Maiddata[$eid]["target"] = $player->getid();
 			
 			$this->Maid->Maiddata[$eid]["level"] = $level;
-			$this->Maid->Maiddata[$eid]["atktime"] += 1;
 			$this->Maid->Maiddata[$eid]["time"] -= 1;
 			$time = $this->Maid->Maiddata[$eid]["time"];
 			$target = $this->Maid->Maiddata[$eid]["target"];
 			if($time <= 0){
 				$sugar = $this->Maid->Maiddata[$eid]["sugar_amount"];
 				if($sugar > 0){
-					$this->Maid->Maiddata[$eid]["atktime"] = 0;
 					$this->getOwner()->EatSugar($eid);
-					$this->Maid->Maiddata[$eid]["sugar_amount"] -= 1;
 					$this->getOwner()->getScheduler()->scheduleDelayedTask(new MaidMove($this->getOwner(), $eid, $x, $y, $z, $yaw, $pitch, $target), 1);
 				}else{
 					$this->getOwner()->MaidReset($eid);
@@ -215,26 +227,30 @@ class MaidMove extends Task{
 				}
 			}else{
 				$this->getOwner()->getScheduler()->scheduleDelayedTask(new MaidMove($this->getOwner(), $eid, $x, $y, $z, $yaw, $pitch, $target), 1);
-				$atktime = $this->Maid->Maiddata[$eid]["atktime"];
-				$reatk = $this->Maid->Maiddata[$eid]["reatk"];
-				$atkrange = $this->Maid->Maiddata[$eid]["atkrange"];
-				$hp = $this->Maid->Maiddata[$eid]["hp"];
-				$maxhp = $this->Maid->Maiddata[$eid]["maxhp"];
-				if($targetentity->getid() !== $player->getid() and $atktime >= $reatk and $targetpos->distance($pos) <= $atkrange){
-					$this->Maid->Maiddata[$eid]["atktime"] = 0;
-					if($this->Maid->Maiddata[$eid]["iteminhand"]->getid() === 261){ // ‹|
-						$atk = $this->Maid->Maiddata[$eid]["atk"];
-						$arrow = new Arrow($this->getOwner(), $this->Maid, $eid, $atk, 6, 80);
-						$arrow->ShootArrow();
-					}else{
-						$this->getOwner()->MaidATK($eid, $targetentity);
-					}
-				}elseif($atktime >= $reatk and $hp < $maxhp){
-					$this->getOwner()->Maid->Maiddata[$eid]["atktime"] = 0;
-					$this->getOwner()->EatSugar($eid);
-					$this->getOwner()->Maid->Maiddata[$eid]["sugar_amount"] -= 1;
-				}
+				$this->AttackMove($eid, $player, $targetentity);
 			}
+		}
+	}
+
+	function AttackMove(int $eid, Player $player, Entity $targetentity) {
+		$atktime = $this->Maid->Maiddata[$eid]["atktime"];
+		$reatk = $this->Maid->Maiddata[$eid]["reatk"];
+		$atkrange = $this->Maid->Maiddata[$eid]["atkrange"];
+		$hp = $this->Maid->Maiddata[$eid]["hp"];
+		$maxhp = $this->Maid->Maiddata[$eid]["maxhp"];
+		$targetpos = new Vector3($targetentity->x, $targetentity->y, $targetentity->z);
+		if($targetentity->getid() !== $player->getid() and $targetpos->distance($this->getOwner()->getMaidPosition($eid)) <= $atkrange and $atktime >= $reatk){
+			if($targetentity instanceof ItemEntity){
+				if($this->Maid->Maiddata[$eid]["iteminhand"]->getid() !== 261)
+					$this->getOwner()->MaidPickupItem($eid, $targetentity);
+			}else{
+				$this->getOwner()->MaidATK($eid, $targetentity);
+			}
+		}elseif($hp < $maxhp and $atktime >= $reatk){
+			$this->getOwner()->EatSugar($eid);
+		}elseif($targetentity->getid() === $player->getid() and $atktime >= $reatk){
+			$this->Maid->Maiddata[$eid]["atktime"] = 0;
+			$this->getOwner()->SearchItemEntity($eid);
 		}
 	}
 }

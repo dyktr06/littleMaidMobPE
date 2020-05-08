@@ -87,9 +87,11 @@ class EventListener implements Listener{
 						$mode = $this->Maid->Maiddata[$eid]["mode"];
 						if($mode === 0){
 							$this->Maid->Maiddata[$eid]["mode"] = 1;
+							$this->Maid->Maiddata[$eid]["target"] = $player->getid();
 							$player->sendPopup("自由行動の指示を解除しました。");
 						}else{
 							$this->Maid->Maiddata[$eid]["mode"] = 0;
+							$this->Maid->Maiddata[$eid]["target"] = 0;
 							$this->Maid->Maiddata[$eid]["speed"] = $this->Main->MaidSpeed;
 						$player->sendPopup("自由行動の指示をしました。");
 						}

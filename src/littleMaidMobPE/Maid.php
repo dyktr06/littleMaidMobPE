@@ -12,18 +12,23 @@ use littleMaidMobPE\event\maid\MaidDeathEvent;
 use littleMaidMobPE\event\maid\MaidEatSugarEvent;
 use littleMaidMobPE\event\maid\MaidItemEquipEvent;
 use littleMaidMobPE\event\maid\MaidMoveEvent;
+use littleMaidMobPE\event\maid\MaidPickupItemEvent;
+use littleMaidMobPE\event\maid\MaidShootBowEvent;
 use littleMaidMobPE\event\maid\MaidSpawnEvent;
+use littleMaidMobPE\projectile\Arrow;
 use littleMaidMobPE\task\MaidMove;
 use littleMaidMobPE\task\RemoveMaid;
 
 use pocketmine\scheduler\Task;
 use pocketmine\entity\Entity;
 use pocketmine\entity\Skin;
+use pocketmine\entity\object\ItemEntity;
 use pocketmine\event\entity\EntityDamageByEntityEvent;
 use pocketmine\event\entity\EntityDamageEvent;
 use pocketmine\item\Item;
 use pocketmine\level\Level;
 use pocketmine\level\particle\HeartParticle;
+use pocketmine\level\particle\ItemBreakParticle;
 use pocketmine\math\Vector3;
 use pocketmine\network\mcpe\protocol\ActorEventPacket;
 use pocketmine\network\mcpe\protocol\AddPlayerPacket;
@@ -258,9 +263,19 @@ class Maid {
 		if(!$this->Main->isMaid($eid))
 			return false;
 		
-		$def = 0; // TODO
 		$atk = $this->Maiddata[$eid]["atk"];
-		$atkrange = $this->Maiddata[$eid]["atkrange"];
+		if($this->Maiddata[$eid]["iteminhand"]->getid() === 261){ // 弓
+			$this->Maiddata[$eid]["atktime"] = 0;
+			$arrow = new Arrow($this->Main, $this, $eid, $atk, 6, 80);
+			$arrow->Shoot();
+			
+			$event = new MaidShootBowEvent($eid);
+			$event->call();
+			
+			return true;
+		}
+		
+		$def = 0; // TODO
 		$x = $this->Maiddata[$eid]["x"];
 		$y = $this->Maiddata[$eid]["y"];
 		$z = $this->Maiddata[$eid]["z"];
@@ -269,7 +284,6 @@ class Maid {
 		$finaldamage = ($damage > 1) ? $damage : 1;
 		$ev = new EntityDamageEvent($target, EntityDamageEvent::CAUSE_CUSTOM, $finaldamage);
 		$target->attack($ev);
-		$this->Maiddata[$eid]["atktime"] = 0;
 		if($target->x - $x >= 0){
 			$motionx = 1;
 		}else{
@@ -280,6 +294,8 @@ class Maid {
 		}else{
 			$motionz = -1;
 		}
+		
+		$this->Maiddata[$eid]["atktime"] = 0;
 		
 		$packet = new ActorEventPacket();
 		$packet->entityRuntimeId = $eid;
@@ -439,6 +455,11 @@ class Maid {
 		if(!$this->Main->isMaid($eid))
 			return false;
 		
+		$this->Maiddata[$eid]["atktime"] = 0;
+		
+		if($this->Maiddata[$eid]["sugar_amount"] >= 1)
+			$this->Maiddata[$eid]["sugar_amount"] -= 1;
+		
 		$this->Maiddata[$eid]["time"] += 1200 * 20;
 		if($this->Maiddata[$eid]["time"] >= 1200 * 7 * 20){
 			$this->Maiddata[$eid]["time"] = 1200 * 7 * 20;
@@ -447,6 +468,9 @@ class Maid {
 		if($this->Maiddata[$eid]["maxhp"] > $this->Maiddata[$eid]["hp"]){
 			$this->Maiddata[$eid]["hp"] = $this->Maiddata[$eid]["hp"] + 1;
 		}
+		
+		$particle = new ItemBreakParticle(new Vector3($this->Maiddata[$eid]["x"], $this->Maiddata[$eid]["y"] + 1, $this->Maiddata[$eid]["z"]), Item::get($this->Main->config->get("Control"), 0, 1));
+		$this->Maiddata[$eid]["level"]->addParticle($particle);
 		
 		$event = new MaidEatSugarEvent($eid);
 		$event->call();
@@ -498,6 +522,21 @@ class Maid {
 		$this->Maiddata[$eid]["pitch"] = $pitch;
 		
 		$event = new MaidMoveEvent($eid, $pos);
+		$event->call();
+		
+		return true;
+	}
+
+	public function PickupItem(int $eid, ItemEntity $target){
+		$this->Maiddata[$eid]["atktime"] = 0;
+		
+		$item = $target->getItem();
+		$playername = $this->Maiddata[$eid]["playername"];
+		$player = $this->Main->getServer()->getPlayer($playername);
+		$player->getInventory()->addItem($item);
+		$target->kill();
+		
+		$event = new MaidPickupItemEvent($eid, $target);
 		$event->call();
 		
 		return true;
