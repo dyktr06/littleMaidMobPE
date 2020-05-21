@@ -5,6 +5,7 @@ namespace littleMaidMobPE\event\maid;
 use littleMaidMobPE\event\maid\MaidEvent;
 
 use pocketmine\entity\object\ItemEntity;
+use pocketmine\item\Item;
 
 class MaidPickupItemEvent extends MaidEvent{
 
@@ -15,15 +16,15 @@ class MaidPickupItemEvent extends MaidEvent{
 		$this->itementity = $itementity;
 	}
 
-	public function getEntity(){
+	public function getEntity(): ItemEntity{
 		return $this->itementity;
 	}
 
-	public function getItemEntity(){
+	public function getItemEntity(): ItemEntity{
 		return $this->itementity;
 	}
 
-	public function getItem(){
+	public function getItem(): Item{
 		return $this->itementity->getItem();
 	}
 }

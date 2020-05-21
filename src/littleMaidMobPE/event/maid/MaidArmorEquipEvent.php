@@ -17,11 +17,11 @@ class MaidArmorEquipEvent extends MaidEvent{
 		$this->part = $part;
 	}
 
-	public function getItem(){
+	public function getItem(): Item{
 		return $this->item;
 	}
 
-	public function getPart(){
+	public function getPart(): int{
 		return $this->part;
 	}
 }

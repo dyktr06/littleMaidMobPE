@@ -15,7 +15,7 @@ class MaidContractEvent extends MaidEvent{
 		$this->player = $player;
 	}
 
-	public function getPlayer(){
+	public function getPlayer(): Player{
 		return $this->player;
 	}
 }

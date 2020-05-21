@@ -34,8 +34,8 @@ use pocketmine\utils\UUID;
 
 class EventListener implements Listener{
 
-	public $maid;
-	public $main;
+	private $maid;
+	private $main;
 
 	public function __construct(Main $main, Maid $maid) {
 		$this->Main = $main;

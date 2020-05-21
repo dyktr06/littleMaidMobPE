@@ -9,7 +9,9 @@ use pocketmine\network\mcpe\protocol\RemoveActorPacket;
 use pocketmine\Server;
 
 class RemoveMaid extends Task{
+
 	private $owner;
+	private $eid;
 
 	function __construct(Plugin $owner, int $eid){
 		$this->owner = $owner;

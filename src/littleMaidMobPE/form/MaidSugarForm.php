@@ -10,6 +10,10 @@ use pocketmine\item\Item;
 
 class MaidSugarForm implements Form{
 
+	private $m;
+	private $player;
+	private $eid;
+
 	public function __construct(Maid $m, Player $player, int $eid) {
 		$this->Maid = $m;
 		$this->Player = $player;

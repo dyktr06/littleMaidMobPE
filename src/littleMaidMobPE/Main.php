@@ -24,8 +24,8 @@ class Main extends PluginBase implements Listener{
 
 	// API <-
 
-	// メイドさんだったらtrue
-	public function isMaid(int $eid){
+	// メイドさんかを判定
+	public function isMaid(int $eid): bool{
 		if(isset($this->Maid->Maiddata[$eid])){
 			return true;
 		}else{
@@ -33,8 +33,8 @@ class Main extends PluginBase implements Listener{
 		}
 	}
 
-	// 契約されているメイドさんだったらtrue
-	public function isPlayerMaid(int $eid){
+	// 契約されているメイドさんかを判定
+	public function isPlayerMaid(int $eid): bool{
 		if(!$this->isMaid($eid))
 			return false;
 		
@@ -46,7 +46,7 @@ class Main extends PluginBase implements Listener{
 	}
 
 	// Configに設定されているSkinを取得
-	public function getConfigSkin(){
+	public function getConfigSkin(): Skin{
 		$geometryJsonEncoded = base64_decode($this->config->get("Geometrydata"));
 		if($geometryJsonEncoded !== "") $geometryJsonEncoded = \json_encode(\json_decode($geometryJsonEncoded));
 		
@@ -55,7 +55,7 @@ class Main extends PluginBase implements Listener{
 	}
 
 	// メイドさんの持っているアイテムを取得
-	public function getMaidItem(int $eid){
+	public function getMaidItem(int $eid): ?Item{
 		if($this->isMaid($eid)){
 			return $this->Maid->Maiddata[$eid]["item"];
 		}else{
@@ -67,7 +67,7 @@ class Main extends PluginBase implements Listener{
 	* メイドさんの着ている防具を取得する
 	* $part 0 = ヘルメット, 1 = チェストプレート, 2 = レギンス, 3 = ブーツ
 	*/
-	public function getMaidArmor(int $eid, int $part){
+	public function getMaidArmor(int $eid, int $part): ?Item{
 		if($this->isMaid($eid)){
 			switch($part){
 				case 0:
@@ -91,7 +91,7 @@ class Main extends PluginBase implements Listener{
 	}
 
 	// メイドさんの体力を取得
-	public function getMaidHealth(int $eid){
+	public function getMaidHealth(int $eid): ?int{
 		if($this->isMaid($eid)){
 			return $this->Maid->Maiddata[$eid]["hp"];
 		}else{
@@ -100,17 +100,14 @@ class Main extends PluginBase implements Listener{
 	}
 
 	// メイドさんの体力を設定
-	public function setMaidHealth(int $eid, int $value){
+	public function setMaidHealth(int $eid, int $value): void{
 		if($this->isMaid($eid)){
 			$this->Maid->Maiddata[$eid]["hp"] = $value;
-			return true;
-		}else{
-			return false;
 		}
 	}
 
 	// メイドさんの最大体力を取得
-	public function getMaidMaxHealth(int $eid){
+	public function getMaidMaxHealth(int $eid): ?int{
 		if($this->isMaid($eid)){
 			return $this->Maid->Maiddata[$eid]["maxhp"];
 		}else{
@@ -119,17 +116,14 @@ class Main extends PluginBase implements Listener{
 	}
 
 	// メイドさんの最大体力を設定
-	public function setMaidMaxHealth(int $eid, int $value){
+	public function setMaidMaxHealth(int $eid, int $value): void{
 		if($this->isMaid($eid)){
 			$this->Maid->Maiddata[$eid]["maxhp"] = $value;
-			return true;
-		}else{
-			return false;
 		}
 	}
 
 	// メイドさんの攻撃力を取得
-	public function getMaidATK(int $eid){
+	public function getMaidATK(int $eid): ?int{
 		if($this->isMaid($eid)){
 			return $this->Maid->Maiddata[$eid]["atk"];
 		}else{
@@ -138,17 +132,14 @@ class Main extends PluginBase implements Listener{
 	}
 
 	// メイドさんの攻撃力を設定
-	public function setMaidATK(int $eid, int $value){
+	public function setMaidATK(int $eid, int $value): void{
 		if($this->isMaid($eid)){
 			$this->Maid->Maiddata[$eid]["atk"] = $value;
-			return true;
-		}else{
-			return false;
 		}
 	}
 
 	// メイドさんの防御力を取得
-	public function getMaidDefence(int $eid){
+	public function getMaidDefence(int $eid): ?int{
 		if($this->isMaid($eid)){
 			return $this->Maid->Maiddata[$eid]["def"];
 		}else{
@@ -157,7 +148,7 @@ class Main extends PluginBase implements Listener{
 	}
 
 	// メイドさんのスピードを取得
-	public function getMaidSpeed(int $eid){
+	public function getMaidSpeed(int $eid): ?int{
 		if($this->isMaid($eid)){
 			return $this->Maid->Maiddata[$eid]["speed"];
 		}else{
@@ -166,38 +157,29 @@ class Main extends PluginBase implements Listener{
 	}
 
 	// メイドさんのスピードを設定
-	public function setMaidSpeed(int $eid, int $value){
+	public function setMaidSpeed(int $eid, int $value): void{
 		if($this->isMaid($eid)){
 			$this->Maid->Maiddata[$eid]["speed"] = $value;
-			return true;
-		}else{
-			return false;
 		}
 	}
 
 	// メイドさんの攻撃範囲(リーチ)を設定
-	public function setMaidATKRange(int $eid, int $value){
+	public function setMaidATKRange(int $eid, int $value): void{
 		if($this->isMaid($eid)){
 			$this->Maid->Maiddata[$eid]["atkrange"] = $value;
 			$this->Maid->Maiddata[$eid]["enemydistance"] = $value;
-			return true;
-		}else{
-			return false;
 		}
 	}
 
 	// メイドさんの再攻撃時間を設定
-	public function setMaidReATK(int $eid, int $value){
+	public function setMaidReATK(int $eid, int $value): void{
 		if($this->isMaid($eid)){
 			$this->Maid->Maiddata[$eid]["reatk"] = $value;
-			return true;
-		}else{
-			return false;
 		}
 	}
 
 	// メイドさんのスキンを取得
-	public function getMaidSkin(int $eid){
+	public function getMaidSkin(int $eid): ?Skin{
 		if($this->isMaid($eid)){
 			return $this->Maid->Maiddata[$eid]["skin"];
 		}else{
@@ -206,7 +188,7 @@ class Main extends PluginBase implements Listener{
 	}
 
 	// メイドさんの座標を取得
-	public function getMaidPosition(int $eid){
+	public function getMaidPosition(int $eid): ?Vector3{
 		if($this->isMaid($eid)){
 			$pos = new Vector3($this->Maid->Maiddata[$eid]["x"], $this->Maid->Maiddata[$eid]["y"], $this->Maid->Maiddata[$eid]["z"]);
 			return $pos;
@@ -216,7 +198,7 @@ class Main extends PluginBase implements Listener{
 	}
 
 	// メイドさんのワールドを取得
-	public function getMaidLevel(int $eid){
+	public function getMaidLevel(int $eid): ?Level{
 		if($this->isMaid($eid)){
 			return $this->Maid->Maiddata[$eid]["level"];
 		}else{
@@ -225,7 +207,7 @@ class Main extends PluginBase implements Listener{
 	}
 
 	// メイドさんの持っている砂糖の数を取得
-	public function getMaidSugarCount(int $eid){
+	public function getMaidSugarCount(int $eid): ?int{
 		if($this->isMaid($eid)){
 			return $this->Maid->Maiddata[$eid]["sugar_amount"];
 		}else{
@@ -234,17 +216,14 @@ class Main extends PluginBase implements Listener{
 	}
 
 	// メイドさんの持っている砂糖の数を設定
-	public function setMaidSugarCount(int $eid, int $value){
+	public function setMaidSugarCount(int $eid, int $value): void{
 		if($this->isMaid($eid)){
 			$this->Maid->Maiddata[$eid]["sugar_amount"] = $value;
-			return true;
-		}else{
-			return false;
 		}
 	}
 
 	// メイドさんの雇用期間を取得(秒)
-	public function getPlayerMaidTime(int $eid){
+	public function getPlayerMaidTime(int $eid): ?int{
 		if($this->isPlayerMaid($eid)){
 			return floor($this->Maid->Maiddata[$eid]["time"] / 20);
 		}else{
@@ -253,17 +232,14 @@ class Main extends PluginBase implements Listener{
 	}
 
 	// メイドさんの雇用期間を設定(秒)
-	public function setPlayerMaidTime(int $eid, int $value){
+	public function setPlayerMaidTime(int $eid, int $value): void{
 		if($this->isPlayerMaid($eid)){
 			$this->Maid->Maiddata[$eid]["time"] = $value * 20;
-			return true;
-		}else{
-			return false;
 		}
 	}
 
 	// メイドさんの契約しているプレイヤーの名前を取得
-	public function getMaidPlayerName(int $eid){
+	public function getMaidPlayerName(int $eid): ?string{
 		if($this->isMaid($eid)){
 			return $this->Maid->Maiddata[$eid]["playername"];
 		}else{
@@ -272,12 +248,12 @@ class Main extends PluginBase implements Listener{
 	}
 
 	// プレイヤーの契約しているメイドさんの数を取得
-	public function getMaidCount(Player $player){
+	public function getMaidCount(Player $player): int{
 		return count($this->getPlayerMaidEntityRuntimeId($player));
 	}
 
 	// プレイヤーの契約しているメイドさんのeidを取得
-	public function getPlayerMaidEntityRuntimeId(Player $player){
+	public function getPlayerMaidEntityRuntimeId(Player $player): int{
 		$eid = array();
 		$name = $player->getName();
 		$maidcount = $this->data[$name]["MaidCount"];
@@ -292,9 +268,9 @@ class Main extends PluginBase implements Listener{
 	}
 
 	// メイドさんにスキンをセットする
-	public function setMaidSkin(int $eid, Skin $skin){
+	public function setMaidSkin(int $eid, Skin $skin): void{
 		if(!$this->isMaid($eid))
-			return false;
+			return;
 		
 		$this->Maid->Maiddata[$eid]["skin"] = $skin;
 		$skinid = base64_encode($skin->getSkinId());
@@ -310,21 +286,20 @@ class Main extends PluginBase implements Listener{
 		foreach($this->getServer()->getOnlinePlayers() as $players){
 			$this->Redisplay($eid, $players);
 		}
-		return true;
 	}
 
 	// メイドさんをスポーンさせる
-	public function MaidSpawn(Vector3 $pos, Level $level, Skin $skin){
+	public function MaidSpawn(Vector3 $pos, Level $level, Skin $skin): void{
 		$this->Maid->Spawn($pos, $level, $skin);
 	}
 
 	// プレイヤーの契約したメイドさんをスポーンさせる
-	public function PlayerMaidSpawn(Player $player){
+	public function PlayerMaidSpawn(Player $player): void{
 		$this->Maid->PlayerMaidSpawn($player);
 	}
 
 	// メイドさんがアイテムを装着する
-	public function MaidEquip(int $eid, Item $item){
+	public function MaidEquip(int $eid, Item $item): void{
 		$this->Maid->ItemEquip($eid, $item);
 	}
 
@@ -332,52 +307,69 @@ class Main extends PluginBase implements Listener{
 	* メイドさんが防具を装着する
 	* $part 1 = チェストプレート, 2 = レギンス, 3 = ブーツ
 	*/
-	public function MaidEquipArmor(int $eid, Item $item, int $part){
+	public function MaidEquipArmor(int $eid, Item $item, int $part): void{
 		$this->Maid->ArmorEquip($eid, $item, $part);
 	}
 
 	// メイドさんがダメージを与える
-	public function MaidATK(int $eid, Entity $target){
+	public function MaidATK(int $eid, Entity $target): void{
 		$this->Maid->Attack($eid, $target);
 	}
 
 	//　メイドさんがダメージを食らう
-	public function MaidDamage(Entity $entity, int $eid, int $damage){
+	public function MaidDamage(Entity $entity, int $eid, int $damage): void{
 		$this->Maid->Damaged($entity, $eid, $damage);
 	}
 
 	// メイドさんが死ぬ
-	public function MaidDeath(int $eid){
+	public function MaidDeath(int $eid): void{
 		$this->Maid->Death($eid);
 	}
 
  	// メイドさんと契約する
-	public function ContractMaid(Player $player, int $eid){
+	public function ContractMaid(Player $player, int $eid): void{
 		$this->Maid->Contract($player, $eid);
 	}
 
+	// メイドさんが砂糖を持っているかどうかを調べる
+	public function MaidSugarCheck(int $eid): bool{
+		if(!$this->isMaid($eid))
+			return false;
+
+		if($this->Maid->Maiddata[$eid]["sugar_amount"] >= 1){
+			return true;
+		}else{
+			for($i = 0; $i <= 26; $i++){
+				if($this->Maid->Maiddata[$eid]["inventory"][$i]["id"] === $this->config->get("Control") and $this->Maid->Maiddata[$eid]["inventory"][$i]["amount"] >= 1){
+					return true;
+				}
+			}
+			return false;
+		}
+	}
+
 	// メイドさんが砂糖を食べる
-	public function EatSugar(int $eid){
+	public function EatSugar(int $eid): void{
 		$this->Maid->EatSugar($eid);
 	}
 
 	// メイドさんを野良の状態に戻す
-	public function MaidReset(int $eid){
+	public function MaidReset(int $eid): void{
 		$this->Maid->Reset($eid);
 	}
 
 	// メイドさんを動かす
-	public function MaidMove(int $eid, Vector3 $pos, float $yaw, float $pitch){
+	public function MaidMove(int $eid, Vector3 $pos, float $yaw, float $pitch): void{
 		$this->Maid->Move($eid, $pos, $yaw, $pitch);
 	}
 
 	// メイドさんがアイテムを拾う
-	public function MaidPickupItem(int $eid, ItemEntity $target){
+	public function MaidPickupItem(int $eid, ItemEntity $target): void{
 		$this->Maid->PickupItem($eid, $target);
 	}
 
 	// メイドさんの再表示
-	public function Redisplay(int $eid, Player $player){
+	public function Redisplay(int $eid, Player $player): void{
 		$this->Maid->Redisplay($eid, $player);
 	}
 
@@ -432,7 +424,7 @@ class Main extends PluginBase implements Listener{
 		$this->playerdata->save();
 	}
 
-	public function PlayerMaidRemove(Player $player){
+	public function PlayerMaidRemove(Player $player): void{
 		$name = $player->getName();
 		$maidcount = $this->data[$name]["MaidCount"];
 		for($i = 1; $i <= $maidcount; $i++){
@@ -445,17 +437,16 @@ class Main extends PluginBase implements Listener{
 				}
 			}
 		}
-		return true;
 	}
 
-	public function PlayerMaidStatusSave(Player $player, int $id){
+	public function PlayerMaidStatusSave(Player $player, int $id): void{
 		$name = $player->getName();
 		if(!isset($this->data[$name][$id]))
-			return false;
+			return;
 		
 		$eid = $this->data[$name][$id]["eid"];
 		if(!$this->isMaid($eid))
-			return false;
+			return;
 		
 		$this->data[$name][$id]["name"] = $this->Maid->Maiddata[$eid]["name"];
 		$this->data[$name][$id]["iteminhand"] = $this->Maid->Maiddata[$eid]["iteminhand"]->getid();
@@ -473,21 +464,24 @@ class Main extends PluginBase implements Listener{
 		$this->data[$name][$id]["hp"] = $this->Maid->Maiddata[$eid]["hp"];
 		$this->data[$name][$id]["time"] = $this->Maid->Maiddata[$eid]["time"];
 		
-		return true;
+		for($i = 0; $i <= 26; $i++){
+			$this->data[$name][$id]["inventory"][$i]["id"] = $this->Maid->Maiddata[$eid]["inventory"][$i]["id"];
+			$this->data[$name][$id]["inventory"][$i]["damage"] = $this->Maid->Maiddata[$eid]["inventory"][$i]["damage"];
+			$this->data[$name][$id]["inventory"][$i]["amount"] = $this->Maid->Maiddata[$eid]["inventory"][$i]["amount"];
+		}
 	}
 
-	public function isNearMaid(int $eid, Vector3 $pos){
-		$result = false;
+	public function isNearMaid(int $eid, Vector3 $pos): bool{
 		foreach($this->eid as $maideid){
 			$maidpos = $this->getMaidPosition($maideid);
 			if($pos->distanceSquared($maidpos) <= 0.3 and $eid !== $maideid){
-				$result = true;
+				return true;
 			}
 		}
-		return $result;
+		return false;
 	}
 
-	public function getAtk(Item $item){
+	public function getAtk(Item $item): int{
 		$damageTable = [
 			Item::WOODEN_SWORD => 4,
 			Item::GOLD_SWORD => 4,
@@ -519,7 +513,7 @@ class Main extends PluginBase implements Listener{
 		return $damageTable[$item->getid()] ?? 1;
 	}
 
-	public function CalcYbyBlock(float $x, float $y, float $z, Level $level){
+	public function CalcYbyBlock(float $x, float $y, float $z, Level $level): float{
 		$blockid = $level->getBlock(new Vector3($x, $y, $z))->getID();
 		$blockid2 = $level->getBlock(new Vector3($x, $y - 1, $z))->getID();
 		$blockid3 = $level->getBlock(new Vector3($x, $y + 1, $z))->getID();
@@ -533,8 +527,11 @@ class Main extends PluginBase implements Listener{
 		return $y;
 	}
 
-	public function SearchItemEntity($eid){
+	public function SearchItemEntity($eid): bool{
 		if(!$this->isMaid($eid))
+			return false;
+		
+		if($this->Maid->Maiddata[$eid]["iteminhand"]->getId() === 261)
 			return false;
 		
 		$searchdis = $this->Maid->Maiddata[$eid]["searchdistance"];
@@ -543,6 +540,20 @@ class Main extends PluginBase implements Listener{
 		foreach($level->getEntities() as $entities){
 			if($pos->distance($entities) <= $searchdis and $entities instanceof ItemEntity){
 				$this->Maid->Maiddata[$eid]["target"] = $entities->getid();
+				return true;
+			}
+		}
+		return false;
+	}
+
+	public function ReduceSugarInInventory(int $eid, int $amount = 1): void{
+		if(!$this->isMaid($eid))
+			return;
+
+		for($i = 0; $i <= 26; $i++){
+			if($this->Maid->Maiddata[$eid]["inventory"][$i]["id"] === $this->config->get("Control") and $this->Maid->Maiddata[$eid]["inventory"][$i]["amount"] >= $amount){
+				$this->Maid->Maiddata[$eid]["inventory"][$i]["amount"] -= $amount;
+				break;
 			}
 		}
 	}

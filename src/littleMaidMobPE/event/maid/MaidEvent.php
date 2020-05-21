@@ -8,7 +8,7 @@ abstract class MaidEvent extends Event{
 
 	protected $eid;
 
-	public function getMaidEntityRuntimeId(){
+	public function getMaidEntityRuntimeId(): int{
 		return $this->eid;
 	}
 }

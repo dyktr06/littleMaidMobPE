@@ -15,7 +15,7 @@ class MaidMoveEvent extends MaidEvent{
 		$this->pos = $pos;
 	}
 
-	public function getTo(){
+	public function getTo(): Vector3{
 		return $this->pos;
 	}
 }

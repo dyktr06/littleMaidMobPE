@@ -18,11 +18,11 @@ class MaidSpawnEvent extends MaidEvent{
 		$this->level = $level;
 	}
 
-	public function getPosition(){
+	public function getPosition(): Vector3{
 		return $this->pos;
 	}
 
-	public function getLevel(){
+	public function getLevel(): Level{
 		return $this->level;
 	}
 }

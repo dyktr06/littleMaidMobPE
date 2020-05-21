@@ -13,7 +13,7 @@ class MaidItemEquipEvent extends MaidEvent{
 		$this->item = $item;
 	}
 
-	public function getItem(){
+	public function getItem(): Item{
 		return $this->item;
 	}
 

@@ -9,15 +9,23 @@ use pocketmine\Player;
 
 class MaidStatusForm implements Form{
 
+	private $m;
+	private $player;
+	private $eid;
+
 	public function __construct(Maid $m, Player $player, int $eid) {
 		$this->Maid = $m;
-		$this->Player = $player;
+		$this->player = $player;
 		$this->eid = $eid;
 	}
 
 	public function handleResponse(Player $player, $data): void {
 		if($data === null){
 			return;
+		}
+
+		if($data[1] === true){
+			$this->Maid->OpenInventory($this->player, $this->eid);
 		}
 	}
 
@@ -38,8 +46,13 @@ class MaidStatusForm implements Form{
 			'content' => [
 	                	[
 					'type' => 'label',
-					'text' => " §l§a体力 §f: ".$hp." / ".$maxhp." \n\n §c攻撃力 §f: ".$atk." \n\n §b防御力 §f: ".$def." \n\n §e雇用期間 §f: ".$minute." 分 ".$second." 秒 \n\n §d自由行動 §f: ".$mode." \n\n §f砂糖 §f: ".$sugar_amount." 個 \n\n "
-				]
+					'text' => " §l§a体力 §f: ".$hp." / ".$maxhp." \n\n §c攻撃力 §f: ".$atk." \n\n §b防御力 §f: ".$def." \n\n §e雇用期間 §f: ".$minute." 分 ".$second." 秒 \n\n §d自由行動 §f: ".$mode." \n\n §f砂糖 §f: ".$sugar_amount." 個 \n"
+				],
+		                [
+		                    'type' => 'toggle',
+		                    'text' => 'メイドさんのインベントリを開きますか？',
+		                    'default' => false
+		                ]
 			]
 		];
 	}

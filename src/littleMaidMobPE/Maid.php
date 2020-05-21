@@ -15,11 +15,13 @@ use littleMaidMobPE\event\maid\MaidMoveEvent;
 use littleMaidMobPE\event\maid\MaidPickupItemEvent;
 use littleMaidMobPE\event\maid\MaidShootBowEvent;
 use littleMaidMobPE\event\maid\MaidSpawnEvent;
+use littleMaidMobPE\inventory\MaidInventory;
 use littleMaidMobPE\projectile\Arrow;
 use littleMaidMobPE\task\MaidMove;
 use littleMaidMobPE\task\RemoveMaid;
 
 use pocketmine\scheduler\Task;
+use pocketmine\block\Block;
 use pocketmine\entity\Entity;
 use pocketmine\entity\Skin;
 use pocketmine\entity\object\ItemEntity;
@@ -27,11 +29,17 @@ use pocketmine\event\entity\EntityDamageByEntityEvent;
 use pocketmine\event\entity\EntityDamageEvent;
 use pocketmine\item\Item;
 use pocketmine\level\Level;
+use pocketmine\level\Position;
 use pocketmine\level\particle\HeartParticle;
 use pocketmine\level\particle\ItemBreakParticle;
 use pocketmine\math\Vector3;
+use pocketmine\nbt\NetworkLittleEndianNBTStream;
+use pocketmine\nbt\tag\CompoundTag;
 use pocketmine\network\mcpe\protocol\ActorEventPacket;
 use pocketmine\network\mcpe\protocol\AddPlayerPacket;
+use pocketmine\network\mcpe\protocol\BlockActorDataPacket;
+use pocketmine\network\mcpe\protocol\ContainerClosePacket;
+use pocketmine\network\mcpe\protocol\ContainerOpenPacket;
 use pocketmine\network\mcpe\protocol\InventoryTransactionPacket;
 use pocketmine\network\mcpe\protocol\MobArmorEquipmentPacket;
 use pocketmine\network\mcpe\protocol\MobEquipmentPacket;
@@ -45,7 +53,7 @@ use pocketmine\utils\UUID;
 
 class Maid {
 
-	public $main;
+	private $main;
 
 	public function __construct(Main $main) {
 		$this->Main = $main;
@@ -54,7 +62,7 @@ class Maid {
 		$this->Server = $this->Main->getServer();
 	}
 
-	public function Spawn(Vector3 $pos, Level $level, Skin $skin){
+	public function Spawn(Vector3 $pos, Level $level, Skin $skin): void{
 		$eid = mt_rand(100000, 10000000);
 		$air = Item::get(0, 0, 1); //空アイテム
 		$size = $this->MaidSize;
@@ -121,6 +129,13 @@ class Maid {
 			"mode" => 0,
 			"target" => 0,
 		];
+		
+		for($i = 0; $i <= 26; $i++){
+			$this->Maiddata[$eid]["inventory"][$i]["id"] = 0;
+			$this->Maiddata[$eid]["inventory"][$i]["damage"] = 0;
+			$this->Maiddata[$eid]["inventory"][$i]["amount"] = 1;
+		}
+		
 		$x = $this->Maiddata[$eid]["x"];
 		$y = $this->Maiddata[$eid]["y"];
 		$z = $this->Maiddata[$eid]["z"];
@@ -132,13 +147,11 @@ class Maid {
 		
 		$event = new MaidSpawnEvent($eid, $pos, $level);
 		$event->call();
-		
-		return true;
 	}
 
-	public function ItemEquip(int $eid, Item $item){
+	public function ItemEquip(int $eid, Item $item): void{
 		if(!$this->Main->isMaid($eid))
-			return false;
+			return;
 		
 		$atk = $this->Main->getAtk($item);
 		$itemid = $item->getid();
@@ -172,13 +185,11 @@ class Maid {
 		
 		$event = new MaidItemEquipEvent($eid, $item);
 		$event->call();
-		
-		return true;
 	}
 
-	public function ArmorEquip(int $eid, Item $item, int $part){
+	public function ArmorEquip(int $eid, Item $item, int $part): void{
 		if(!$this->Main->isMaid($eid))
-			return false;
+			return;
 		
 		$armorValues = [
 			Item::LEATHER_TUNIC => 4,
@@ -255,13 +266,11 @@ class Maid {
 		
 		$event = new MaidArmorEquipEvent($eid, $item, $part);
 		$event->call();
-		
-		return true;
 	}
 
-	public function Attack(int $eid, Entity $target){
+	public function Attack(int $eid, Entity $target): void{
 		if(!$this->Main->isMaid($eid))
-			return false;
+			return;
 		
 		$atk = $this->Maiddata[$eid]["atk"];
 		if($this->Maiddata[$eid]["iteminhand"]->getid() === 261){ // 弓
@@ -271,8 +280,7 @@ class Maid {
 			
 			$event = new MaidShootBowEvent($eid);
 			$event->call();
-			
-			return true;
+			return;
 		}
 		
 		$def = 0; // TODO
@@ -311,17 +319,15 @@ class Maid {
 		
 		$event = new MaidAttackEvent($eid, $target, $damage, $finaldamage);
 		$event->call();
-		
-		return true;
 	}
 
-	public function Damaged(Entity $entity, int $eid, int $damage){
+	public function Damaged(Entity $entity, int $eid, int $damage): void{
 		if(!$this->Main->isMaid($eid))
-			return false;
+			return;
 		
 		$delaytime = $this->Maiddata[$eid]["delaytime"];
 		if($delaytime > 0)
-			return false;
+			return;
 		
 		$delay = $this->Maiddata[$eid]["delay"];
 		$this->Maiddata[$eid]["delaytime"] = $delay;
@@ -342,22 +348,19 @@ class Maid {
 		
 		if($hp < 1){
 			$this->MaidDeath($eid);
-			return true;
 		}else{
 			if($this->Maiddata[$eid]["playername"] === ""){
 				$this->Maiddata[$eid]["speed"] = ($speed < $this->MaidSpeed * 2) ? $speed * 2 : $speed;
-				return true;
 			}else{
 				$this->Maiddata[$eid]["target"] = $entity->getid();
 				$this->Maiddata[$eid]["speed"] = ($speed === 0) ? $this->MaidSpeed : $speed;
-				return true;
 			}
 		}
 	}
 
-	public function Death(int $eid){
+	public function Death(int $eid): void{
 		if(!$this->Main->isMaid($eid))
-			return false;
+			return;
 		
 		$this->Reset($eid);
 		$level = $this->Maiddata[$eid]["level"];
@@ -368,6 +371,10 @@ class Maid {
 		$boots = $this->Maiddata[$eid]["boots"];
 		$sugar = Item::get($this->Main->config->get("Control"), 0, $this->Maiddata[$eid]["sugar_amount"]);
 		$inv = array($item, $chest, $legs, $boots, $sugar);
+		for($i = 0; $i <= 26; $i++){
+			$invitem = Item::get($this->Maiddata[$eid]["inventory"][$i]["id"], $this->Maiddata[$eid]["inventory"][$i]["damage"], $this->Maiddata[$eid]["inventory"][$i]["amount"]);
+			array_push($inv, $item);
+		}
 		$y = -sin(deg2rad($this->Maiddata[$eid]["pitch"]));
 		$xz = cos(deg2rad($this->Maiddata[$eid]["pitch"]));
 		$x = -$xz * sin(deg2rad($this->Maiddata[$eid]["yaw"]));
@@ -388,13 +395,11 @@ class Maid {
 		
 		$event = new MaidDeathEvent($eid, $inv);
 		$event->call();
-		
-		return true;
 	}
 
-	public function Contract(Player $player, int $eid){
+	public function Contract(Player $player, int $eid): void{
 		if(!$this->Main->isMaid($eid))
-			return false;
+			return;
 		
 		$maiditem = $this->Maiddata[$eid]["iteminhand"];
 		$head = $this->Maiddata[$eid]["helmet"];
@@ -429,38 +434,40 @@ class Maid {
 			"sugar_amount" => $sugar,
 			"maxhp" => 20,
 			"hp" => 20,
-			"time" => 1200 * 20,
+			"time" => 30 * 20,
 			"skinid" => $skinid,
 			"skindata" => $skindata,
 			"capedata" => $capedata,
 			"geometryname" => $geometryname,
 			"geometrydata" => $geometrydata,
 			];
+		
+		for($i = 0; $i <= 26; $i++){
+			$this->data[$name][$player_maid_count]["inventory"][$i]["id"] = $this->Maiddata[$eid]["inventory"][$i]["id"];
+			$this->data[$name][$player_maid_count]["inventory"][$i]["damage"] = $this->Maiddata[$eid]["inventory"][$i]["damage"];
+			$this->data[$name][$player_maid_count]["inventory"][$i]["amount"] = $this->Maiddata[$eid]["inventory"][$i]["amount"];
+		}
+		
 		$this->Maiddata[$eid]["playerid"] = $player_maid_count;
 		$this->Maiddata[$eid]["playername"] = $name;
 		$this->Maiddata[$eid]["target"] = $player->getid();
 		$this->Maiddata[$eid]["mode"] = 1;
-		$this->Maiddata[$eid]["time"] = 1200 * 20;
+		$this->Maiddata[$eid]["time"] = 30 * 20;
 		$level = $player->getLevel();
 		$particle = new HeartParticle(new Vector3($this->Maiddata[$eid]["x"], $this->Maiddata[$eid]["y"] + 1.5, $this->Maiddata[$eid]["z"]));
 		$level->addParticle($particle);
 		
 		$event = new MaidContractEvent($eid, $player);
 		$event->call();
-		
-		return true;
 	}
 
-	public function EatSugar(int $eid){
+	public function EatSugar(int $eid): void{
 		if(!$this->Main->isMaid($eid))
-			return false;
+			return;
 		
 		$this->Maiddata[$eid]["atktime"] = 0;
-		
-		if($this->Maiddata[$eid]["sugar_amount"] >= 1)
-			$this->Maiddata[$eid]["sugar_amount"] -= 1;
-		
-		$this->Maiddata[$eid]["time"] += 1200 * 20;
+				
+		$this->Maiddata[$eid]["time"] += 30 * 20;
 		if($this->Maiddata[$eid]["time"] >= 1200 * 7 * 20){
 			$this->Maiddata[$eid]["time"] = 1200 * 7 * 20;
 		}
@@ -474,13 +481,11 @@ class Maid {
 		
 		$event = new MaidEatSugarEvent($eid);
 		$event->call();
-		
-		return true;
 	}
 
-	public function Reset(int $eid){
+	public function Reset(int $eid): void{
 		if(!$this->Main->isMaid($eid))
-			return false;
+			return;
 		
 		$name = $this->Maiddata[$eid]["playername"];
 		$playerid = $this->Maiddata[$eid]["playerid"];
@@ -494,14 +499,12 @@ class Maid {
 		$this->Maiddata[$eid]["mode"] = 0;
 		$this->Maiddata[$eid]["time"] = 0;
 		$this->Maiddata[$eid]["speed"] = $this->MaidSpeed;
-		
-		return true;
 	}
 
-	public function Move(int $eid, Vector3 $pos, float $yaw, float $pitch){
+	public function Move(int $eid, Vector3 $pos, float $yaw, float $pitch): void{
 		if(!$this->Main->isMaid($eid))
-			return false;
-
+			return;
+		
 		$x = $pos->x;
 		$y = $pos->y;
 		$z = $pos->z;
@@ -523,28 +526,103 @@ class Maid {
 		
 		$event = new MaidMoveEvent($eid, $pos);
 		$event->call();
-		
-		return true;
 	}
 
-	public function PickupItem(int $eid, ItemEntity $target){
+	public function PickupItem(int $eid, ItemEntity $target): void{
+		if(!$this->Main->isMaid($eid))
+			return;
+		
 		$this->Maiddata[$eid]["atktime"] = 0;
 		
 		$item = $target->getItem();
-		$playername = $this->Maiddata[$eid]["playername"];
-		$player = $this->Main->getServer()->getPlayer($playername);
-		$player->getInventory()->addItem($item);
+		$this->addItem($eid, $item);
 		$target->kill();
 		
 		$event = new MaidPickupItemEvent($eid, $target);
 		$event->call();
-		
-		return true;
 	}
 
-	public function Redisplay(int $eid, Player $player){
+	public function addItem(int $eid, Item $item): void{
 		if(!$this->Main->isMaid($eid))
-			return false;
+			return;
+		
+		for($i = 0; $i <= 26; $i++){
+			$invid = $this->Maiddata[$eid]["inventory"][$i]["id"];
+			$invdamage = $this->Maiddata[$eid]["inventory"][$i]["damage"];
+			$invamount = $this->Maiddata[$eid]["inventory"][$i]["amount"];
+			if($invid === 0 or $invamount === 0){
+				$this->Maiddata[$eid]["inventory"][$i]["id"] = $item->getId();
+				$this->Maiddata[$eid]["inventory"][$i]["damage"] = $item->getDamage();
+				$this->Maiddata[$eid]["inventory"][$i]["amount"] = $item->getCount();
+				break;
+			}elseif($invid === $item->getId() and $invdamage === $item->getDamage() and $invamount + $item->getCount() <= $item->getMaxStackSize()){
+				$this->Maiddata[$eid]["inventory"][$i]["id"] = $item->getId();
+				$this->Maiddata[$eid]["inventory"][$i]["damage"] = $item->getDamage();
+				$this->Maiddata[$eid]["inventory"][$i]["amount"] = $invamount + $item->getCount();
+				break;
+			}
+		}
+	}
+
+	public function OpenInventory(Player $player, int $eid): void{
+		if(!$this->Main->isMaid($eid))
+			return;
+
+		$inventory = new MaidInventory($player, $eid, $this);
+		$player->addWindow($inventory);
+
+		$x = $player->getFloorX();
+		$y = $player->getFloorY() + 3;
+		$z = $player->getFloorZ();
+		
+		$block = Block::get(Block::CHEST, 2, new Position($x, $y, $z));
+		$player->getLevel()->sendBlocks([$player], [$block]);
+
+		$nbt = new CompoundTag();
+		$nbt->setString("id", "Chest");
+		$nbt->setInt("x", $x);
+		$nbt->setInt("y", $y);
+		$nbt->setInt("z", $z);
+		$nbt->setString("CustomName", "メイドさんのインベントリ");
+
+		$stream = new NetworkLittleEndianNBTStream();
+		$pk = new BlockActorDataPacket();
+		$pk->x = $x;
+		$pk->y = $y;
+		$pk->z = $z;
+		$pk->namedtag = $stream->write($nbt);
+		$player->dataPacket($pk);
+
+		$holder = $inventory->getHolder();
+
+		$pk = new ContainerOpenPacket();
+		$pk->windowId = $player->getWindowId($inventory);
+		$pk->type = $inventory->getNetworkType();
+		$pk->entityUniqueId = -1;
+		$pk->x = $holder->getFloorX();
+		$pk->y = $holder->getFloorY();
+		$pk->z = $holder->getFloorZ();
+		$player->dataPacket($pk);
+		$inventory->sendContents($player);		
+	}
+
+	public function CloseInventory(Player $player, int $eid): void{
+		if(!$this->Main->isMaid($eid))
+			return;
+
+		$inventory = new MaidInventory($player, $eid, $this);
+		
+		$pk = new ContainerClosePacket();
+        	$pk->windowId = $player->getWindowId($inventory);
+        	$player->dataPacket($pk);
+
+		$block = Block::get(Block::AIR, 0, new Position($player->getFloorX(), $player->getFloorY() + 3, $player->getFloorZ()));
+		$player->getLevel()->sendBlocks([$player], [$block]);
+	}
+
+	public function Redisplay(int $eid, Player $player): void{
+		if(!$this->Main->isMaid($eid))
+			return;
 		
 		$packet = new RemoveActorPacket();
 		$packet->entityUniqueId = $eid;
@@ -601,11 +679,9 @@ class Maid {
 		$packet3->legs = $legs;
 		$packet3->feet = $boots;
 		$player->dataPacket($packet3);
-		
-		return true;
 	}
 
-	public function PlayerMaidSpawn(Player $player){
+	public function PlayerMaidSpawn(Player $player): void{
 		$name = $player->getname();
 		$maidcount = $this->Main->data[$name]["MaidCount"];
 		for($i = 1; $i <= $maidcount; $i++){
@@ -691,6 +767,13 @@ class Maid {
 					"mode" => 1,
 					"target" => $player->getid(),
 					];
+					
+					for($j = 0; $j <= 26; $j++){
+						$this->Maiddata[$eid]["inventory"][$j]["id"] = $this->Main->data[$name][$i]["inventory"][$j]["id"];
+						$this->Maiddata[$eid]["inventory"][$j]["damage"] = $this->Main->data[$name][$i]["inventory"][$j]["damage"];
+						$this->Maiddata[$eid]["inventory"][$j]["amount"] = $this->Main->data[$name][$i]["inventory"][$j]["amount"];
+					}
+					
 					$this->Main->data[$name][$i]["spawn"] = 1;
 					$this->Main->data[$name][$i]["eid"] = $eid;
 					$this->Main->eid[$eid] = $eid;
@@ -711,6 +794,5 @@ class Maid {
 				}
 			}
 		}
-		return true;
 	}
 }

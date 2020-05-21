@@ -11,7 +11,15 @@ use pocketmine\Player;
 use pocketmine\Server;
 
 class MaidMove extends Task{
+
 	private $owner;
+ 	private $eid;
+	private $x;
+	private $y;
+	private $z;
+	private $yaw;
+	private $pitch;
+	private $target;
 
 	function __construct(Plugin $owner, int $eid, float $x, float $y, float $z, float $yaw, float $pitch, int $target){
 		$this->owner = $owner;
@@ -217,10 +225,17 @@ class MaidMove extends Task{
 			$time = $this->Maid->Maiddata[$eid]["time"];
 			$target = $this->Maid->Maiddata[$eid]["target"];
 			if($time <= 0){
-				$sugar = $this->Maid->Maiddata[$eid]["sugar_amount"];
-				if($sugar > 0){
-					$this->getOwner()->EatSugar($eid);
-					$this->getOwner()->getScheduler()->scheduleDelayedTask(new MaidMove($this->getOwner(), $eid, $x, $y, $z, $yaw, $pitch, $target), 1);
+				if($this->getOwner()->MaidSugarCheck($eid)){
+					$sugar = $this->Maid->Maiddata[$eid]["sugar_amount"];
+					if($sugar >= 1){
+						$this->Maid->Maiddata[$eid]["sugar_amount"] -= 1;
+						$this->getOwner()->EatSugar($eid);
+						$this->getOwner()->getScheduler()->scheduleDelayedTask(new MaidMove($this->getOwner(), $eid, $x, $y, $z, $yaw, $pitch, $target), 1);
+					}else{
+						$this->getOwner()->ReduceSugarInInventory($eid, 1);
+						$this->getOwner()->EatSugar($eid);
+						$this->getOwner()->getScheduler()->scheduleDelayedTask(new MaidMove($this->getOwner(), $eid, $x, $y, $z, $yaw, $pitch, $target), 1);
+					}
 				}else{
 					$this->getOwner()->MaidReset($eid);
 					$this->getOwner()->getScheduler()->scheduleDelayedTask(new MaidMove($this->getOwner(), $eid, $x, $y, $z, $yaw, $pitch, 0), 1);
@@ -246,8 +261,15 @@ class MaidMove extends Task{
 			}else{
 				$this->getOwner()->MaidATK($eid, $targetentity);
 			}
-		}elseif($hp < $maxhp and $atktime >= $reatk){
-			$this->getOwner()->EatSugar($eid);
+		}elseif($hp < $maxhp and $atktime >= $reatk and $this->getOwner()->MaidSugarCheck($eid)){
+			$sugar = $this->Maid->Maiddata[$eid]["sugar_amount"];
+			if($sugar > 0){
+				$this->Maid->Maiddata[$eid]["sugar_amount"] -= 1;
+				$this->getOwner()->EatSugar($eid);
+			}else{
+				$this->getOwner()->ReduceSugarInInventory($eid, 1);
+				$this->getOwner()->EatSugar($eid);
+			}
 		}elseif($targetentity->getid() === $player->getid() and $atktime >= $reatk){
 			$this->Maid->Maiddata[$eid]["atktime"] = 0;
 			$this->getOwner()->SearchItemEntity($eid);

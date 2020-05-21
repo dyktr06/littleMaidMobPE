@@ -21,8 +21,13 @@ use pocketmine\utils\UUID;
 
 class Arrow {
 
-	public $range;
-	
+	private $main;
+	private $maid;
+	private $maideid;
+	private $damage;
+	private $speed;
+	private $type;
+
 	public function __construct(Main $main, Maid $maid, int $maideid, int $damage, float $speed, int $type) {
 		$this->Main = $main;
 		$this->Maid = $maid;
@@ -33,7 +38,7 @@ class Arrow {
 		$this->type = $type;
 	}
 	
-	public function Shoot(){
+	public function Shoot(): void{
 		$damage = $this->damage;
 		$range = $this->range;
 		$speed = $this->speed;
@@ -77,7 +82,7 @@ class Arrow {
 		}
 	}
 
-	public function Remove(int $eid){
+	public function Remove(int $eid): void{
 		$packet = new RemoveActorPacket();
 		$packet->entityUniqueId = $eid;
 		foreach($this->Main->getServer()->getOnlinePlayers() as $players){
@@ -85,7 +90,7 @@ class Arrow {
 		}
 	}
 
-	public function Move(int $eid, Vector3 $pos, Level $level){
+	public function Move(int $eid, Vector3 $pos, Level $level): void{
 		$packet = new MoveActorAbsolutePacket();
 		$packet->entityRuntimeId = $eid;
 		$packet->position = $pos;
@@ -101,6 +106,16 @@ class Arrow {
 class ArrowMoving extends Task{
 
 	private $owner;
+	private $eid;
+	private $x;
+	private $y;
+	private $z;
+	private $level;
+	private $yaw;
+	private $pitch;
+	private $damage;
+	private $range;
+	private $speed;
 
 	function __construct($owner, int $eid, float $x, float $y, float $z, Level $level, float $yaw, float $pitch, int $damage, int $range, float $speed){
 		$this->owner = $owner;

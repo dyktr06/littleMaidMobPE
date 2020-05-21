@@ -13,7 +13,7 @@ class MaidDeathEvent extends MaidEvent{
 		$this->drop = $drop;
 	}
 
-	public function getDrop(){
+	public function getDrop(): array{
 		return $this->drop;
 	}
 }

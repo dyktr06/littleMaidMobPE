@@ -19,15 +19,15 @@ class MaidDamageEvent extends MaidEvent{
 		$this->finaldamage = $finaldamage;
 	}
 
-	public function getDamager(){
+	public function getDamager(): Entity{
 		return $this->entity;
 	}
 
-	public function getBaseDamage(){
+	public function getBaseDamage(): float{
 		return $this->damage;
 	}
 
-	public function getFinalDamage(){
+	public function getFinalDamage(): float{
 		return $this->finaldamage;
 	}
 }
