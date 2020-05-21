@@ -434,7 +434,7 @@ class Maid {
 			"sugar_amount" => $sugar,
 			"maxhp" => 20,
 			"hp" => 20,
-			"time" => 30 * 20,
+			"time" => 1200 * 20,
 			"skinid" => $skinid,
 			"skindata" => $skindata,
 			"capedata" => $capedata,
@@ -452,7 +452,7 @@ class Maid {
 		$this->Maiddata[$eid]["playername"] = $name;
 		$this->Maiddata[$eid]["target"] = $player->getid();
 		$this->Maiddata[$eid]["mode"] = 1;
-		$this->Maiddata[$eid]["time"] = 30 * 20;
+		$this->Maiddata[$eid]["time"] = 1200 * 20;
 		$level = $player->getLevel();
 		$particle = new HeartParticle(new Vector3($this->Maiddata[$eid]["x"], $this->Maiddata[$eid]["y"] + 1.5, $this->Maiddata[$eid]["z"]));
 		$level->addParticle($particle);
@@ -467,7 +467,7 @@ class Maid {
 		
 		$this->Maiddata[$eid]["atktime"] = 0;
 				
-		$this->Maiddata[$eid]["time"] += 30 * 20;
+		$this->Maiddata[$eid]["time"] += 1200 * 20;
 		if($this->Maiddata[$eid]["time"] >= 1200 * 7 * 20){
 			$this->Maiddata[$eid]["time"] = 1200 * 7 * 20;
 		}
