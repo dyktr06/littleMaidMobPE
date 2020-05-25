@@ -39,7 +39,7 @@ class MaidMove extends Task{
 
 	function onRun(int $currentTick){
 		if(!$this->getOwner()->isMaid($this->eid))
-			return false;
+			return;
 		
 		$eid = $this->eid;
 		$level = $this->Maid->Maiddata[$eid]["level"];
@@ -133,7 +133,7 @@ class MaidMove extends Task{
 			
 			$player = $this->getOwner()->getServer()->getPlayer($playername);
 			if(!$player instanceof Player)
-				return false;
+				return;
 			
 			$targetentity = $level->getEntity($target);
 			if($targetentity != null){
@@ -145,7 +145,7 @@ class MaidMove extends Task{
 				if($mode === 0){
 					$this->Maid->Maiddata[$eid]["target"] = 0;
 					$this->getOwner()->getScheduler()->scheduleDelayedTask(new MaidMove($this->getOwner(), $eid, $x, $y, $z, $yaw, $pitch, 0), 1);
-					return false;
+					return;
 				}else{
 					$px = $player->x;
 					$py = $player->y;

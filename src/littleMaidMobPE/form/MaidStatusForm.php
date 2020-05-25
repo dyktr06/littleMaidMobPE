@@ -24,7 +24,7 @@ class MaidStatusForm implements Form{
 			return;
 		}
 
-		if($data[1] === true){
+		if($data === 0){
 			$this->Maid->OpenInventory($this->player, $this->eid);
 		}
 	}
@@ -41,18 +41,13 @@ class MaidStatusForm implements Form{
 		$mode = ($this->Maid->Maiddata[$eid]["mode"] === 1) ? "OFF" : "ON";
 		$sugar_amount = $this->Maid->Maiddata[$eid]["sugar_amount"];
 		return [
-			'type' => 'custom_form',
+			'type' => 'form',
 			'title' => '【 メイドさんのステータス 】',
-			'content' => [
-	                	[
-					'type' => 'label',
-					'text' => " §l§a体力 §f: ".$hp." / ".$maxhp." \n\n §c攻撃力 §f: ".$atk." \n\n §b防御力 §f: ".$def." \n\n §e雇用期間 §f: ".$minute." 分 ".$second." 秒 \n\n §d自由行動 §f: ".$mode." \n\n §f砂糖 §f: ".$sugar_amount." 個 \n"
-				],
-		                [
-		                    'type' => 'toggle',
-		                    'text' => 'メイドさんのインベントリを開きますか？',
-		                    'default' => false
-		                ]
+			'content' => " §l§a体力 §f: ".$hp." / ".$maxhp." \n\n §c攻撃力 §f: ".$atk." \n\n §b防御力 §f: ".$def." \n\n §e雇用期間 §f: ".$minute." 分 ".$second." 秒 \n\n §d自由行動 §f: ".$mode." \n\n §f砂糖 §f: ".$sugar_amount." 個 \n\n ",
+			'buttons' => [
+				[
+					'text' => 'メイドさんのインベントリを開く'
+				]
 			]
 		];
 	}

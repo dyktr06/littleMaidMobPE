@@ -410,6 +410,7 @@ class Maid {
 		$name = $player->getName();
 		$this->Main->data[$name]["MaidCount"] += 1;
 		$player_maid_count = $this->Main->data[$name]["MaidCount"];
+		$defaulttime = 1200 * 20;
 		$skin = $this->Maiddata[$eid]["skin"];
 		$skinid = base64_encode($skin->getSkinId());
 		$skindata = base64_encode($skin->getSkinData());
@@ -434,7 +435,7 @@ class Maid {
 			"sugar_amount" => $sugar,
 			"maxhp" => 20,
 			"hp" => 20,
-			"time" => 1200 * 20,
+			"time" => $defaulttime,
 			"skinid" => $skinid,
 			"skindata" => $skindata,
 			"capedata" => $capedata,
@@ -452,7 +453,7 @@ class Maid {
 		$this->Maiddata[$eid]["playername"] = $name;
 		$this->Maiddata[$eid]["target"] = $player->getid();
 		$this->Maiddata[$eid]["mode"] = 1;
-		$this->Maiddata[$eid]["time"] = 1200 * 20;
+		$this->Maiddata[$eid]["time"] = $defaulttime;
 		$level = $player->getLevel();
 		$particle = new HeartParticle(new Vector3($this->Maiddata[$eid]["x"], $this->Maiddata[$eid]["y"] + 1.5, $this->Maiddata[$eid]["z"]));
 		$level->addParticle($particle);
@@ -467,7 +468,7 @@ class Maid {
 		
 		$this->Maiddata[$eid]["atktime"] = 0;
 				
-		$this->Maiddata[$eid]["time"] += 1200 * 20;
+		$this->Maiddata[$eid]["time"] += 30 * 20;
 		if($this->Maiddata[$eid]["time"] >= 1200 * 7 * 20){
 			$this->Maiddata[$eid]["time"] = 1200 * 7 * 20;
 		}
@@ -586,23 +587,23 @@ class Maid {
 		$nbt->setString("CustomName", "メイドさんのインベントリ");
 
 		$stream = new NetworkLittleEndianNBTStream();
-		$pk = new BlockActorDataPacket();
-		$pk->x = $x;
-		$pk->y = $y;
-		$pk->z = $z;
-		$pk->namedtag = $stream->write($nbt);
-		$player->dataPacket($pk);
+		$packet = new BlockActorDataPacket();
+		$packet->x = $x;
+		$packet->y = $y;
+		$packet->z = $z;
+		$packet->namedtag = $stream->write($nbt);
+		$player->dataPacket($packet);
 
 		$holder = $inventory->getHolder();
 
-		$pk = new ContainerOpenPacket();
-		$pk->windowId = $player->getWindowId($inventory);
-		$pk->type = $inventory->getNetworkType();
-		$pk->entityUniqueId = -1;
-		$pk->x = $holder->getFloorX();
-		$pk->y = $holder->getFloorY();
-		$pk->z = $holder->getFloorZ();
-		$player->dataPacket($pk);
+		$packet = new ContainerOpenPacket();
+		$packet->windowId = $player->getWindowId($inventory);
+		$packet->type = $inventory->getNetworkType();
+		$packet->entityUniqueId = -1;
+		$packet->x = $holder->getFloorX();
+		$packet->y = $holder->getFloorY();
+		$packet->z = $holder->getFloorZ();
+		$player->dataPacket($packet);
 		$inventory->sendContents($player);		
 	}
 
@@ -612,9 +613,9 @@ class Maid {
 
 		$inventory = new MaidInventory($player, $eid, $this);
 		
-		$pk = new ContainerClosePacket();
-        	$pk->windowId = $player->getWindowId($inventory);
-        	$player->dataPacket($pk);
+		$packet = new ContainerClosePacket();
+        	$packet->windowId = $player->getWindowId($inventory);
+        	$player->dataPacket($packet);
 
 		$block = Block::get(Block::AIR, 0, new Position($player->getFloorX(), $player->getFloorY() + 3, $player->getFloorZ()));
 		$player->getLevel()->sendBlocks([$player], [$block]);
