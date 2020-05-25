@@ -275,7 +275,7 @@ class Maid {
 		$atk = $this->Maiddata[$eid]["atk"];
 		if($this->Maiddata[$eid]["iteminhand"]->getid() === 261){ // 弓
 			$this->Maiddata[$eid]["atktime"] = 0;
-			$arrow = new Arrow($this->Main, $this, $eid, $atk, 6, 80);
+			$arrow = new Arrow($this->Main, $this, $eid, $atk, 4, 80);
 			$arrow->Shoot();
 			
 			$event = new MaidShootBowEvent($eid);

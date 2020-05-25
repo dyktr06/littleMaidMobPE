@@ -56,8 +56,8 @@ class Arrow {
 		$packet->entityRuntimeId = $eid;
 		$packet->type = $this->type;
 		$packet->position = new Vector3($x, $y, $z);
-		$packet->yaw = $yaw;
-		$packet->pitch = $pitch;
+		$packet->yaw = ($yaw > 180 ? 360 : 0) - $yaw;
+		$packet->pitch = -$pitch;
 		@$flags |= 0 << Entity::DATA_FLAG_INVISIBLE;
 		@$flags |= 1 << Entity::DATA_FLAG_CAN_SHOW_NAMETAG;
 		@$flags |= 1 << Entity::DATA_FLAG_ALWAYS_SHOW_NAMETAG;
@@ -161,6 +161,7 @@ class ArrowMoving extends Task{
 					$event = new EntityDamageEvent($entities, EntityDamageEvent::CAUSE_CUSTOM, $damage);
 					$entities->attack($event);
 					$hit++;
+					break;
 				}
 			}
 			if($hit > 0 or $range <= 0){
