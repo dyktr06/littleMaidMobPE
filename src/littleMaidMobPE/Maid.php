@@ -373,7 +373,7 @@ class Maid {
 		$inv = array($item, $chest, $legs, $boots, $sugar);
 		for($i = 0; $i <= 26; $i++){
 			$invitem = Item::get($this->Maiddata[$eid]["inventory"][$i]["id"], $this->Maiddata[$eid]["inventory"][$i]["damage"], $this->Maiddata[$eid]["inventory"][$i]["amount"]);
-			array_push($inv, $item);
+			array_push($inv, $invitem);
 		}
 		$y = -sin(deg2rad($this->Maiddata[$eid]["pitch"]));
 		$xz = cos(deg2rad($this->Maiddata[$eid]["pitch"]));
